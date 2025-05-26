@@ -1,21 +1,21 @@
 import { ApolloServer } from "@apollo/server";
-// import { startStandaloneServer } from "@apollo/server/standalone";
 import DataLoader from "dataloader";
+
+// subscription 
 import { createServer } from 'http';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { WebSocketServer } from 'ws';
-import { useServer } from 'graphql-ws/lib/use/ws';
+import { useServer } from 'graphql-ws/lib/use/ws'; //Must use version 5.5.5, latest version won't support it
 import express from 'express';
 import cors from "cors";
 import { expressMiddleware } from "@apollo/server/express4";
 import { PubSub } from 'graphql-subscriptions';
 
-// read type
+// gencode
 import { readFileSync } from 'fs';
 import { gql } from 'graphql-tag';
 import type { PostPayload } from './__generated__/types';
-import { resolve } from "path";
 
 const typeDefs = gql(readFileSync('./src/schema.graphql', 'utf8'));
 
@@ -262,20 +262,3 @@ const PORT = 4000;
 httpServer.listen(PORT, () => {
     console.log(`Server is now running on http://localhost:${PORT}/graphql`);
 });
-
-// const server = new ApolloServer({ typeDefs, resolvers });
-
-// startStandaloneServer(server, {
-//     context: async () => ({
-//         loaders: {
-//             // userLoader: new DataLoader(batchUsersByIds, { cache: false }),
-//             // postLoader: new DataLoader(batchPostsByAuthorIds, { cache: false }),
-//             userLoader: new DataLoader(batchUsersByIds),
-//             postLoader: new DataLoader(batchPostsByAuthorIds),
-//             commentLoader: new DataLoader(batchCommentsByPostIds),
-//             reactionLoader: new DataLoader(batchReactionsByPostIds),
-//         },
-//     }),
-// }).then(({ url }) => {
-//     console.log(`🚀 Server ready at ${url}`);
-// });
