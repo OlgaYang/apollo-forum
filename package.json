@@ -1,0 +1,21 @@
+{
+  "name": "apollo-forum",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "compile": "tsc",
+    "start": "npm run compile && node ./dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "undici-types": "^6.21.0"
+  },
+  "description": ""
+}
