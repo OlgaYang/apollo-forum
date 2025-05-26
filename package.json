@@ -4,21 +4,30 @@
   "main": "index.js",
   "scripts": {
     "compile": "tsc",
-    "start": "npm run compile && node ./dist/index.js"
+    "start": "npm run compile && node ./dist/index.js",
+    "codegen": "graphql-codegen --config codegen.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.6",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/typescript-resolvers": "^4.5.1",
     "@types/node": "^22.15.21",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "@apollo/server": "^4.12.1",
+    "@graphql-tools/schema": "^10.0.23",
     "dataloader": "^2.2.3",
     "graphql": "^16.11.0",
-    "undici-types": "^6.21.0"
+    "graphql-subscriptions": "^3.0.0",
+    "graphql-tag": "^2.12.6",
+    "graphql-ws": "^5.5.5",
+    "undici-types": "^6.21.0",
+    "ws": "^8.18.2"
   },
   "description": ""
 }

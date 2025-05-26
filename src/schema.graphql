@@ -1,0 +1,63 @@
+
+   enum ReactionType {
+    LIKE
+    DISLIKE
+    LAUGH
+    SAD
+  }
+
+  enum SortOrder {
+    ASC
+    DESC
+  }
+
+  type User {
+    id: ID!
+    nickname: String!
+    image: String
+    posts: [Post!]!
+  }
+
+  type Post {
+    id: ID!
+    title: String!
+    content: String!
+    author: User!
+    comments: [Comment!]!
+    reactions: [Reaction!]!
+  }
+
+  type PostPayload {
+    id: ID!
+    title: String!
+    content: String!
+    authorId: ID!
+  }
+
+  type Comment {
+    id: ID!
+    content: String!
+    author: User!    
+  }
+
+  type Reaction {
+    id: ID!
+    type: ReactionType!
+    user: User!
+  }
+
+  type Query {
+    user(id: ID!): User
+    posts(order: SortOrder = DESC, first: Int): [Post!]!
+  }
+
+  type Mutation {
+    createPost(userId: ID!, title: String!, content: String!): Post!
+    addComment(userId: ID!, postId: ID!, content: String!): Comment!
+    addReaction(userId: ID!, postId: ID!, type: ReactionType!): Reaction!
+  }
+
+  type Subscription {
+   postCreated: PostPayload!
+  }
+

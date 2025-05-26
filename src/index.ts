@@ -1,6 +1,25 @@
 import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
+// import { startStandaloneServer } from "@apollo/server/standalone";
 import DataLoader from "dataloader";
+import { createServer } from 'http';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { WebSocketServer } from 'ws';
+import { useServer } from 'graphql-ws/lib/use/ws';
+import express from 'express';
+import cors from "cors";
+import { expressMiddleware } from "@apollo/server/express4";
+import { PubSub } from 'graphql-subscriptions';
+
+// read type
+import { readFileSync } from 'fs';
+import { gql } from 'graphql-tag';
+import type { PostPayload } from './__generated__/types';
+import { resolve } from "path";
+
+const typeDefs = gql(readFileSync('./src/schema.graphql', 'utf8'));
+
+
 
 // ===== 模擬資料 =====
 let nextPostId = 1000;
@@ -21,59 +40,6 @@ const posts = [
 const comments: Array<{ id: string; content: string; authorId: string; postId: string }> = [];
 const reactions: Array<{ id: string; type: string; userId: string; postId: string }> = [];
 
-// ===== GraphQL Schema =====
-const typeDefs = `#graphql
-   enum ReactionType {
-    LIKE
-    DISLIKE
-    LAUGH
-    SAD
-  }
-
-  enum SortOrder {
-    ASC
-    DESC
-  }
-
-  type User {
-    id: ID!
-    nickname: String!
-    image: String
-    posts: [Post!]!
-  }
-
-  type Post {
-    id: ID!
-    title: String!
-    content: String!
-    author: User!
-    comments: [Comment!]!
-    reactions: [Reaction!]!
-  }
-
-  type Comment {
-    id: ID!
-    content: String!
-    author: User!    
-  }
-
-  type Reaction {
-    id: ID!
-    type: ReactionType!
-    user: User!
-  }
-
-  type Query {
-    user(id: ID!): User
-    posts(order: SortOrder = DESC, first: Int): [Post!]!
-  }
-
-  type Mutation {
-    createPost(userId: ID!, title: String!, content: String!): Post!
-    addComment(userId: ID!, postId: ID!, content: String!): Comment!
-    addReaction(userId: ID!, postId: ID!, type: ReactionType!): Reaction!
-  }
-`;
 
 // ===== DataLoader Functions =====
 function batchUsersByIds(ids: readonly string[]) {
@@ -124,6 +90,9 @@ function batchReactionsByPostIds(postIds: readonly string[]) {
     return Promise.resolve(result);
 }
 
+const POST_CREATED = 'POST_CREATED';
+const pubsub = new PubSub<{ POST_CREATED: PostPayload }>();
+
 // ===== Resolvers =====
 const resolvers = {
     Query: {
@@ -152,8 +121,14 @@ const resolvers = {
             };
 
             posts.push(newPost);
-
-            console.log("✅ createPost result:", newPost);
+            const newPostPayload: PostPayload = {
+                id: newPost.id,
+                title: newPost.title,
+                content: newPost.content,
+                authorId: newPost.authorId
+            };
+            pubsub.publish(POST_CREATED, newPostPayload);
+            console.log("✅ createPost result:", newPostPayload);
             return newPost;
         },
         addComment: (_, { userId, postId, content }) => {
@@ -202,6 +177,13 @@ const resolvers = {
         }
 
     },
+    Subscription: {
+        postCreated: {
+            subscribe: () => pubsub.asyncIterableIterator([POST_CREATED]),
+            resolve: (payload) => payload
+        },
+    },
+
     User: {
         posts: (parent, _, { loaders }) => loaders.postLoader.load(parent.id),
     },
@@ -219,19 +201,81 @@ const resolvers = {
 };
 
 // ===== Server 啟動 =====
-const server = new ApolloServer({ typeDefs, resolvers });
+const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-startStandaloneServer(server, {
-    context: async () => ({
-        loaders: {
-            // userLoader: new DataLoader(batchUsersByIds, { cache: false }),
-            // postLoader: new DataLoader(batchPostsByAuthorIds, { cache: false }),
-            userLoader: new DataLoader(batchUsersByIds),
-            postLoader: new DataLoader(batchPostsByAuthorIds),
-            commentLoader: new DataLoader(batchCommentsByPostIds),
-            reactionLoader: new DataLoader(batchReactionsByPostIds),
-        },
-    }),
-}).then(({ url }) => {
-    console.log(`🚀 Server ready at ${url}`);
+// This `app` is the returned value from `express()`.
+const app = express();
+const httpServer = createServer(app);
+
+// Creating the WebSocket server
+const wsServer = new WebSocketServer({
+    // This is the `httpServer` we created in a previous step.
+    server: httpServer,
+    // Pass a different path here if app.use
+    // serves expressMiddleware at a different path
+    path: '/subscriptions',
 });
+
+const serverCleanup = useServer({ schema }, wsServer);
+
+const server = new ApolloServer({
+    schema,
+    plugins: [
+        // Proper shutdown for the HTTP server.
+        ApolloServerPluginDrainHttpServer({ httpServer }),
+
+        // Proper shutdown for the WebSocket server.
+        {
+            async serverWillStart() {
+                return {
+                    async drainServer() {
+                        await serverCleanup.dispose();
+                    },
+                };
+            },
+        },
+    ],
+
+});
+
+
+await server.start();
+
+app.use(
+    "/graphql",
+    cors<cors.CorsRequest>(),
+    express.json(),
+    expressMiddleware(server, {
+        context: async () => ({
+            loaders: {
+                userLoader: new DataLoader(batchUsersByIds),
+                postLoader: new DataLoader(batchPostsByAuthorIds),
+                commentLoader: new DataLoader(batchCommentsByPostIds),
+                reactionLoader: new DataLoader(batchReactionsByPostIds),
+            },
+        }),
+    })
+);
+
+const PORT = 4000;
+// Now that our HTTP server is fully set up, we can listen to it.
+httpServer.listen(PORT, () => {
+    console.log(`Server is now running on http://localhost:${PORT}/graphql`);
+});
+
+// const server = new ApolloServer({ typeDefs, resolvers });
+
+// startStandaloneServer(server, {
+//     context: async () => ({
+//         loaders: {
+//             // userLoader: new DataLoader(batchUsersByIds, { cache: false }),
+//             // postLoader: new DataLoader(batchPostsByAuthorIds, { cache: false }),
+//             userLoader: new DataLoader(batchUsersByIds),
+//             postLoader: new DataLoader(batchPostsByAuthorIds),
+//             commentLoader: new DataLoader(batchCommentsByPostIds),
+//             reactionLoader: new DataLoader(batchReactionsByPostIds),
+//         },
+//     }),
+// }).then(({ url }) => {
+//     console.log(`🚀 Server ready at ${url}`);
+// });
