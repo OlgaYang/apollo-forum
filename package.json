@@ -15,6 +15,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@apollo/server": "^4.12.1",
+    "dataloader": "^2.2.3",
+    "graphql": "^16.11.0",
     "undici-types": "^6.21.0"
   },
   "description": ""
