@@ -30,6 +30,11 @@ const typeDefs = `#graphql
     SAD
   }
 
+  enum SortOrder {
+    ASC
+    DESC
+  }
+
   type User {
     id: ID!
     nickname: String!
@@ -60,6 +65,7 @@ const typeDefs = `#graphql
 
   type Query {
     user(id: ID!): User
+    posts(order: SortOrder = DESC, first: Int): [Post!]!
   }
 
   type Mutation {
@@ -122,6 +128,14 @@ function batchReactionsByPostIds(postIds: readonly string[]) {
 const resolvers = {
     Query: {
         user: (_, { id }) => users.find((u) => u.id === id),
+        posts: (_, { order = "DESC", first }) => {
+            const sorted = [...posts].sort((a, b) => {
+                const aid = parseInt(a.id, 10);
+                const bid = parseInt(b.id, 10);
+                return order === "ASC" ? aid - bid : bid - aid;
+            });
+            return first ? sorted.slice(0, first) : sorted;
+        }
     },
     Mutation: {
         createPost: (_, { userId, title, content }) => {
