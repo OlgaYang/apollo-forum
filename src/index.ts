@@ -163,16 +163,29 @@ const resolvers = {
             const post = posts.find((p) => p.id === postId);
             if (!user || !post) throw new Error("User or Post not found");
 
-            const newReaction = {
-                id: (nextReactionId++).toString(),
-                type,
-                userId,
-                postId,
-            };
+            // 找出是否已有相同 type 的 reaction
+            const existingIndex = reactions.findIndex(
+                (r) => r.userId === userId && r.postId === postId && r.type === type
+            );
 
-            reactions.push(newReaction);
-            return newReaction;
-        },
+            if (existingIndex !== -1) {
+                // 已經有這筆 reaction，表示取消
+                const removed = reactions.splice(existingIndex, 1)[0];
+                console.log("❌ Removed reaction: ", removed);
+                return removed;
+            } else {
+                // 新增 reaction
+                const newReaction = {
+                    id: (nextReactionId++).toString(),
+                    type,
+                    userId,
+                    postId,
+                };
+                reactions.push(newReaction);
+                console.log("✅ Added new reaction:", newReaction);
+                return newReaction;
+            }
+        }
 
     },
     User: {
