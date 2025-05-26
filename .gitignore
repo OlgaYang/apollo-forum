@@ -2,4 +2,5 @@ node_modules/
 dist/
 .env
 *.log
-
+# Ignore GraphQL Codegen output
+/src/__generated__/
