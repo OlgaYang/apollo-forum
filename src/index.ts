@@ -23,6 +23,11 @@ import admin from "./firebase.js";
 
 import depthLimit from 'graphql-depth-limit';
 
+//metrics
+import { metricsPlugin } from './metricsPlugin.js';
+import { registry } from './prometheus.js';
+
+
 const typeDefs = gql(readFileSync("./schema.graphql", "utf8"));
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -38,7 +43,7 @@ const serverCleanup = useServer({ schema }, wsServer);
 
 const server = new ApolloServer({
     schema,
-    plugins: [
+    plugins: [metricsPlugin,
         ApolloServerPluginDrainHttpServer({ httpServer }),
         {
             async serverWillStart() {
@@ -86,7 +91,14 @@ app.use(
     })
 );
 
+// Prometheus metrics endpoint
+app.get('/metrics', async (_req, res) => {
+    res.setHeader('Content-Type', registry.contentType);
+    res.send(await registry.metrics());
+});
+
 const PORT = 4000;
 httpServer.listen(PORT, () => {
     console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
+    console.log('📊 Metrics at http://localhost:4000/metrics');
 });
