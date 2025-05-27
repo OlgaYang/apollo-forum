@@ -20,5 +20,7 @@ export function batchReactionsByPostIds(postIds: readonly string[]) {
     for (const reaction of reactions) {
         map.get(reaction.postId)?.push(reaction);
     }
+
+    console.log("fetch reactions", "request", postIds, "response", map)
     return Promise.resolve(postIds.map((id) => map.get(id)));
 }

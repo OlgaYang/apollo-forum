@@ -22,5 +22,6 @@ export function batchPostsByAuthorIds(ids: readonly string[]) {
     for (const post of posts) {
         map.get(post.authorId)?.push(post);
     }
+    console.log("fetch posts", "request", ids, "response", map)
     return Promise.resolve(ids.map((id) => map.get(id)));
 }

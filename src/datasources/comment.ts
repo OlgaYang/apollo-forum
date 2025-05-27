@@ -35,5 +35,6 @@ export function batchCommentsByPostIds(postIds: readonly string[]) {
     for (const comment of comments) {
         map.get(comment.postId)?.push(comment);
     }
+    console.log("fetch comments", "request", postIds, "response", map)
     return Promise.resolve(postIds.map((id) => map.get(id)));
 }
