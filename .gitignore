@@ -4,3 +4,5 @@ dist/
 *.log
 # Ignore GraphQL Codegen output
 /src/__generated__/
+# Ignore firebase setting 
+firebase-service-account.json
