@@ -21,20 +21,33 @@ export const resolvers = {
         },
     },
     Mutation: {
-        createPost: (_, { userId, title, content }) => {
+        createPost: (_, { title, content }, context) => {
+            if (!context.user) {
+                throw new Error("You must be logged in");
+            }
+
+            const userId = context.user.uid;
             const user = users.find((u) => u.id === userId);
             if (!user) throw new Error("User not found");
             const newPost = createPost(userId, title, content);
             pubsub.publish(POST_CREATED, newPost);
             return newPost;
         },
-        addComment: (_, { userId, postId, content }) => {
+        addComment: (_, { postId, content }, context) => {
+            if (!context.user) {
+                throw new Error("You must be logged in");
+            }
+            const userId = context.user.uid;
             const user = users.find((u) => u.id === userId);
             const post = posts.find((p) => p.id === postId);
             if (!user || !post) throw new Error("User or Post not found");
             return addComment(userId, postId, content);
         },
-        addReaction: (_, { userId, postId, type }) => {
+        addReaction: (_, { postId, type }, context) => {
+            if (!context.user) {
+                throw new Error("You must be logged in");
+            }
+            const userId = context.user.uid;
             const user = users.find((u) => u.id === userId);
             const post = posts.find((p) => p.id === postId);
             if (!user || !post) throw new Error("User or Post not found");

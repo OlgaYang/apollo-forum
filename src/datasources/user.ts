@@ -1,6 +1,6 @@
 export const users = [
-    { id: "1", nickname: "Alice", image: "img1.png" },
-    { id: "2", nickname: "Bob", image: "img2.png" },
+    { id: "uvaoXdGxCHZfuHW91cIDH5s7KnB3", nickname: "Alice", image: "img1.png" },
+    { id: "aMjLVvoozmbbfKXrpT31uqn9mkn1", nickname: "Bob", image: "img2.png" },
 ];
 
 export function batchUsersByIds(ids: readonly string[]) {

@@ -18,7 +18,10 @@ import { batchPostsByAuthorIds } from "./datasources/post.js"
 import { batchCommentsByPostIds } from "./datasources/comment.js"
 import { batchReactionsByPostIds } from "./datasources/reaction.js"
 
-const typeDefs = gql(readFileSync("./src/schema.graphql", "utf8"));
+//auth
+import admin from "./firebase.js";
+
+const typeDefs = gql(readFileSync("./schema.graphql", "utf8"));
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 const app = express();
@@ -54,14 +57,29 @@ app.use(
     cors<cors.CorsRequest>(),
     express.json(),
     expressMiddleware(server, {
-        context: async () => ({
-            loaders: {
-                userLoader: new DataLoader(batchUsersByIds),
-                postLoader: new DataLoader(batchPostsByAuthorIds),
-                commentLoader: new DataLoader(batchCommentsByPostIds),
-                reactionLoader: new DataLoader(batchReactionsByPostIds),
-            },
-        }),
+        context: async ({ req }) => {
+            const authHeader = req.headers.authorization || "";
+            const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+
+            let user: admin.auth.DecodedIdToken | null = null;
+            if (token) {
+                try {
+                    user = await admin.auth().verifyIdToken(token);
+                } catch (err) {
+                    console.warn("Invalid JWT token:", err);
+                }
+            }
+
+            return {
+                user,
+                loaders: {
+                    userLoader: new DataLoader(batchUsersByIds),
+                    postLoader: new DataLoader(batchPostsByAuthorIds),
+                    commentLoader: new DataLoader(batchCommentsByPostIds),
+                    reactionLoader: new DataLoader(batchReactionsByPostIds),
+                },
+            };
+        },
     })
 );
 

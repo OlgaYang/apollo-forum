@@ -1,7 +1,7 @@
 export const posts: Array<{ id: string; title: string; content: string; authorId: string }> = [
-    { id: "101", title: "Post A", content: "A content", authorId: "1" },
-    { id: "102", title: "Post B", content: "B content", authorId: "2" },
-    { id: "103", title: "Post C", content: "C content", authorId: "1" },
+    { id: "101", title: "Post A", content: "A content", authorId: "uvaoXdGxCHZfuHW91cIDH5s7KnB3" },
+    { id: "102", title: "Post B", content: "B content", authorId: "aMjLVvoozmbbfKXrpT31uqn9mkn1" },
+    { id: "103", title: "Post C", content: "C content", authorId: "uvaoXdGxCHZfuHW91cIDH5s7KnB3" },
 ];
 
 let nextPostId = 1000;

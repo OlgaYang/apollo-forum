@@ -12,7 +12,6 @@ export function addComment(userId: string, postId: string, content: string) {
     return newComment;
 }
 
-// 📁 src/datasources/reaction.ts
 export const reactions: Array<{ id: string; type: string; userId: string; postId: string }> = [];
 
 let nextReactionId = 3000;

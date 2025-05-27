@@ -52,9 +52,9 @@
   }
 
   type Mutation {
-    createPost(userId: ID!, title: String!, content: String!): Post!
-    addComment(userId: ID!, postId: ID!, content: String!): Comment!
-    addReaction(userId: ID!, postId: ID!, type: ReactionType!): Reaction!
+    createPost( title: String!, content: String!): Post!
+    addComment( postId: ID!, content: String!): Comment!
+    addReaction( postId: ID!, type: ReactionType!): Reaction!
   }
 
   type Subscription {

@@ -9,6 +9,7 @@
         ],
         "target": "es2020",
         "module": "esnext",
+        "resolveJsonModule": true,
         "moduleResolution": "node",
         "esModuleInterop": true,
         "types": [
