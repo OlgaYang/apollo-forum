@@ -21,6 +21,8 @@ import { batchReactionsByPostIds } from "./datasources/reaction.js"
 //auth
 import admin from "./firebase.js";
 
+import depthLimit from 'graphql-depth-limit';
+
 const typeDefs = gql(readFileSync("./schema.graphql", "utf8"));
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -48,6 +50,7 @@ const server = new ApolloServer({
             },
         },
     ],
+    validationRules: [depthLimit(5)],
 });
 
 await server.start();
@@ -73,10 +76,10 @@ app.use(
             return {
                 user,
                 loaders: {
-                    userLoader: new DataLoader(batchUsersByIds),
-                    postLoader: new DataLoader(batchPostsByAuthorIds),
-                    commentLoader: new DataLoader(batchCommentsByPostIds),
-                    reactionLoader: new DataLoader(batchReactionsByPostIds),
+                    userLoader: new DataLoader(batchUsersByIds,),
+                    postLoader: new DataLoader(batchPostsByAuthorIds,),
+                    commentLoader: new DataLoader(batchCommentsByPostIds,),
+                    reactionLoader: new DataLoader(batchReactionsByPostIds,),
                 },
             };
         },

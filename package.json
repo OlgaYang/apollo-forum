@@ -25,6 +25,7 @@
     "dataloader": "^2.2.3",
     "firebase-admin": "^11.10.1",
     "graphql": "^16.11.0",
+    "graphql-depth-limit": "^1.1.0",
     "graphql-subscriptions": "^3.0.0",
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.5.5",
