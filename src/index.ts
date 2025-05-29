@@ -21,11 +21,11 @@ import { batchReactionsByPostIds } from "./datasources/reaction.js"
 //auth
 import admin from "./firebase.js";
 
+// Nested depth limit
 import depthLimit from 'graphql-depth-limit';
 
 //metrics
-import { metricsPlugin } from './metricsPlugin.js';
-import { registry } from './prometheus.js';
+import { metricsPlugin, registry } from './metricsPlugin.js';
 
 
 const typeDefs = gql(readFileSync("./schema.graphql", "utf8"));
